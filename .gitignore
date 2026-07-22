@@ -1,0 +1,3 @@
+# Secret issuer key material — NEVER commit (see scripts/generate-issuer-key.mjs)
+keys/
+*.jwk.json

@@ -1,0 +1,35 @@
+{
+  "name": "@scopetrail/core",
+  "version": "0.1.0",
+  "description": "OBO Audit Receipt — portable, cryptographically signed delegation receipts. Zero runtime dependencies. Hosted/self-managed issuer service: ScopeTrail ops (separate private package).",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./atproto": {
+      "types": "./dist/atproto/index.d.ts",
+      "import": "./dist/atproto/index.js"
+    }
+  },
+  "bin": {
+    "view-receipt": "dist/cli/view-receipt.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node --test dist/tests/*.test.js",
+    "lint": "tsc --noEmit",
+    "dev": "tsc --watch"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {}
+}

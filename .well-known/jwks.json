@@ -1,0 +1,16 @@
+{
+  "keys": [
+    {
+      "key_ops": [
+        "verify"
+      ],
+      "ext": true,
+      "alg": "Ed25519",
+      "crv": "Ed25519",
+      "x": "b4ADF_BffQGmB58VfVM0m39dHBPokhyin8uvfdGZzZQ",
+      "kty": "OKP",
+      "kid": "key-1",
+      "use": "sig"
+    }
+  ]
+}

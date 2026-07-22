@@ -1,0 +1,60 @@
+{
+  "lexicon": 1,
+  "id": "dev.scopetrail.auditReceipt",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A wrapper record publishing a signed OBO Audit Receipt to an AT Protocol repository. The signed receipt (a W3C Verifiable Credential, eddsa-jcs-2022 proof) is stored verbatim as an opaque JSON string in receiptJson — the only trusted field. All other properties are untrusted indexed mirrors, duplicated for discovery only; a verifier must re-parse receiptJson, check the mirrors match, then verify the Ed25519 proof before trusting anything. See PRD_ARCH.md §8.3 (Decision D-1).",
+      "key": "any",
+      "record": {
+        "type": "object",
+        "required": [
+          "receiptJson",
+          "issuer",
+          "subject",
+          "issuanceDate",
+          "expirationDate",
+          "summary",
+          "schemaVersion"
+        ],
+        "properties": {
+          "receiptJson": {
+            "type": "string",
+            "maxLength": 100000,
+            "description": "The complete, verbatim signed OBOAuditReceipt as a JSON string (exact JSON.stringify output of the receipt object — never reordered or reshaped). This is the only trusted field: verification re-parses it and checks the eddsa-jcs-2022 proof. Never reconstruct the receipt field-by-field from a native mapping (see §8.3 CBOR round-trip risk)."
+          },
+          "issuer": {
+            "type": "string",
+            "format": "did",
+            "description": "Untrusted mirror of receipt.issuer (the DID or URI of the receipt-issuing service). Verifiers must confirm this matches the parsed receiptJson before relying on it for discovery/filtering."
+          },
+          "subject": {
+            "type": "string",
+            "format": "at-identifier",
+            "description": "Untrusted mirror of receipt.credentialSubject.id (the leaf acting agent/service that is the receipt subject)."
+          },
+          "issuanceDate": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Untrusted mirror of receipt.issuanceDate (ISO-8601 UTC mint time)."
+          },
+          "expirationDate": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Untrusted mirror of receipt.expirationDate (ISO-8601 UTC expiry)."
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Untrusted mirror of receipt.summary — the one-line, plain-English delegation summary, for feed/list UIs that render without fetching and verifying the full receipt."
+          },
+          "schemaVersion": {
+            "type": "string",
+            "const": "obo-receipt/v1",
+            "description": "Version tag of the wrapped receipt payload shape. Fixed to 'obo-receipt/v1' for this lexicon revision."
+          }
+        }
+      }
+    }
+  }
+}
