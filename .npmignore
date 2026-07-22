@@ -1,0 +1,8 @@
+# Compiled test output — "files" in package.json whitelists all of dist/, this excludes the
+# tests subtree from what actually gets packed. (npm applies .npmignore as a further filter on
+# top of the "files" include list.)
+dist/tests/
+dist/**/*.test.js
+dist/**/*.test.js.map
+dist/**/*.test.d.ts
+dist/**/*.test.d.ts.map

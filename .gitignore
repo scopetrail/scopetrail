@@ -1,3 +1,23 @@
 # Secret issuer key material — NEVER commit (see scripts/generate-issuer-key.mjs)
 keys/
 *.jwk.json
+
+# Dependencies and build output — installed/rebuilt by CI (npm ci && npm run build), not shipped
+# in source control. dist/ is what npm pack ships (via package.json "files"), but that's the
+# publish tarball, not this repo's git history.
+node_modules/
+dist/
+
+# BMAD planning/orchestration tooling (Sprint 05 Task 1, vault-reference sweep): these directories
+# hold internal sprint-planning docs, story files with wikilinks back to the Obsidian vault, and
+# scratch build artifacts. None of it is part of the shipped library or public documentation, so
+# it's excluded from the public tree rather than swept file-by-file. Decision recorded here per
+# sprint_05 Task 1 subtask 2 ("gitignore or exclusion list — document the choice").
+.bmad/
+_bmad*/
+
+# OS cruft
+.DS_Store
+
+# npm pack output (Sprint 05 Task 2 smoke-test tarballs) — not part of the source tree
+*.tgz

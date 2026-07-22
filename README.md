@@ -8,19 +8,67 @@ When an agent acts on your behalf, there is usually no tamper-proof artifact pro
 - **Ed25519 / JCS (RFC 8785) / Base58btc** signing, W3C Verifiable Credential–shaped receipts.
 - Stateless verification with in-process replay protection.
 
-See [`.bmad/docs/PRD_ARCH.md`](.bmad/docs/PRD_ARCH.md) for the full spec and architecture.
+See the [API surface](#api-surface) table below for the full export list, and the sections that
+follow for how the pieces fit together.
 
 ## Requirements
 
 - Node.js ≥ 18 (Web Crypto Ed25519 needs ≥ 19 in practice; tested on 22).
 
-## Install & build
+## Install
+
+```bash
+npm install @scopetrail/core
+```
+
+Building from source (this repo):
 
 ```bash
 npm install      # installs dev deps (typescript, @types/node)
 npm run build    # compiles src/ → dist/
 npm test         # build + run the test suite (74 tests)
 ```
+
+## Quickstart: mint → publish → keyless verify
+
+The full round trip — mint a receipt, publish it to an AT Protocol repo, and verify it back with
+**nothing but the `at://` URI and a public JWKS URL** (no keys shipped to the verifier, no auth):
+
+```ts
+import { mintReceipt } from '@scopetrail/core';
+import {
+  AtpClient, FetchTransport, AppPasswordAuth, createPlcDidResolver,
+  publishReceipt, verifyFromUri,
+} from '@scopetrail/core/atproto';
+
+// 1. Mint (issuer side — see "Build the delegation context" below for `context`)
+const receipt = await mintReceipt(context, privateKey, 'key-1', 'did:plc:<issuer>');
+
+// 2. Publish
+const client = new AtpClient({
+  auth: new AppPasswordAuth({ service: process.env.ATP_PDS!, identifier: process.env.ATP_IDENTIFIER!, appPassword: process.env.ATP_APP_PASSWORD! }),
+  transport: new FetchTransport(),
+  didResolver: createPlcDidResolver(),
+});
+const uri = await publishReceipt(receipt, client, 'did:plc:<issuer>');
+// → at://did:plc:<issuer>/dev.scopetrail.auditReceipt/<rkey>
+
+// 3. Verify — keyless, from anywhere, using the live hosted JWKS
+const result = await verifyFromUri(uri, client, {
+  jwksUrl: 'https://scopetrail.github.io/.well-known/jwks.json',
+});
+// → { valid: true, errors: [], receipt, render }
+```
+
+Or from the command line, against a live receipt (the CLI's `--jwks` takes a local file, so fetch
+the hosted JWKS once):
+
+```bash
+curl -s https://scopetrail.github.io/.well-known/jwks.json -o jwks.json
+node dist/cli/view-receipt.js "at://did:plc:…/dev.scopetrail.auditReceipt/<rkey>" --jwks jwks.json
+```
+
+The rest of this README walks each step in detail.
 
 ## The flow at a glance
 
@@ -315,8 +363,22 @@ The full pipeline is exercised against an in-memory **mock PDS** (`MockPds`) imp
 
 ## Project status
 
-Sprint 01 (core library), Sprint 02 (HTTP issuer service + JWKS endpoint), Sprint 03 (atproto publication + verify-from-`at://`, mock-PDS tested), and Sprint 04 Task 5 (fetch-by-URL JWKS resolution — true no-keys verification) complete — 74 tests. Outstanding (Sprint 04, Jim-gated): deploy the static `/.well-known/jwks.json` host and record the live JWKS URL; one live re-publish under the real `dev.scopetrail.auditReceipt` NSID verified from that URL. Deferred: Redis-backed nonce store, key rotation/persistence, owned lexicon domain + strict validation, OAuth replacing app-password auth.
+Core library, HTTP issuer service design, AT Protocol publication + verify-from-`at://` (mock-PDS
+tested), and fetch-by-URL JWKS resolution (true no-keys verification) are complete — 74 tests
+green. The public JWKS is live at https://scopetrail.github.io/.well-known/jwks.json, and a real
+receipt has been published under the `dev.scopetrail.auditReceipt` collection and verified keyless
+against that URL. Deferred: Redis-backed nonce store, key rotation/persistence, a published atproto
+lexicon schema record, OAuth replacing app-password auth.
+
+See also: the launch post and positioning page (linked here once published) for how ScopeTrail
+compares to adjacent projects, and [`docs/positioning.md`](docs/positioning.md) for the short
+version.
 
 ## License
 
-Unpublished / internal. Add a license before distribution.
+Apache License 2.0 — see [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
+
+"ScopeTrail" (name and logo) is a trademark of the ScopeTrail project; the license covers the code,
+not the name. See [`TRADEMARK.md`](TRADEMARK.md) before using the ScopeTrail name for a fork,
+distribution, or hosted service. Contributions: see [`CONTRIBUTING.md`](CONTRIBUTING.md) (DCO
+sign-off, no CLA).

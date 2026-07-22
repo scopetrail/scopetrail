@@ -1,1 +1,0 @@
-{"version":3,"file":"publish.d.ts","sourceRoot":"","sources":["../../src/atproto/publish.ts"],"names":[],"mappings":"AACA;;;;;;;;;;;GAWG;AAEH,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,aAAa,CAAC;AAEnD,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,aAAa,CAAC;AAE7C;;;;;;;GAOG;AACH,wBAAsB,cAAc,CAClC,OAAO,EAAE,eAAe,EACxB,MAAM,EAAE,SAAS,EACjB,SAAS,EAAE,MAAM,GAChB,OAAO,CAAC,MAAM,CAAC,CAYjB"}

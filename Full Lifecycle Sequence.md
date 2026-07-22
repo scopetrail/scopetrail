@@ -1,13 +1,6 @@
----
-type: diagram
-date: 2026-07-18
-status: active
-tags: [delegation-receipts, architecture, sequence-diagram, atproto]
----
-
 # Delegation Receipt — Full Lifecycle Sequence
 
-High-level design of the `delegation-receipts` software, end to end: build & sign a receipt (issuer side), publish it to an AT Protocol repository, and verify it from its `at://` URI with no keys and no auth. Source of truth: [[Agent Delegation Receipts - Project Brief]] · spec [`.bmad/docs/PRD_ARCH.md`](.bmad/docs/PRD_ARCH.md) (§8) · [`README.md`](README.md) · atproto layer [[ATProto Receipts PoC]].
+High-level design of the `delegation-receipts` software, end to end: build & sign a receipt (issuer side), publish it to an AT Protocol repository, and verify it from its `at://` URI with no keys and no auth. See [`README.md`](README.md) for the API walkthrough this diagram summarizes.
 
 The key idea: **the Ed25519 signature is the single source of truth end to end.** The HTTP issuer service and the atproto layer both wrap the same core mint/verify pair rather than replacing it — atproto adds *where the receipt lives and how it's discovered*, not a new trust model.
 

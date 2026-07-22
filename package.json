@@ -18,15 +18,52 @@
   "bin": {
     "view-receipt": "dist/cli/view-receipt.js"
   },
+  "files": [
+    "dist",
+    "!dist/tests/**",
+    "!dist/**/*.test.js",
+    "!dist/**/*.test.js.map",
+    "!dist/**/*.test.d.ts",
+    "!dist/**/*.test.d.ts.map",
+    "lexicons",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "npm run build && node --test dist/tests/*.test.js",
     "lint": "tsc --noEmit",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build && npm test"
   },
   "engines": {
     "node": ">=18.0.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/scopetrail/scopetrail.git"
+  },
+  "homepage": "https://github.com/scopetrail/scopetrail#readme",
+  "bugs": {
+    "url": "https://github.com/scopetrail/scopetrail/issues"
+  },
+  "keywords": [
+    "delegation",
+    "audit",
+    "receipt",
+    "agent",
+    "ai-agent",
+    "obo",
+    "on-behalf-of",
+    "verifiable-credential",
+    "ed25519",
+    "atproto",
+    "at-protocol",
+    "provenance",
+    "consent"
+  ],
+  "license": "Apache-2.0",
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.4.0"
