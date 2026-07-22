@@ -2,7 +2,7 @@
 
 Research pass for Sprint 05 Task 4. Sources are the current (accessed 2026-07-22) atproto.com
 spec/guide pages, fetched live rather than reconstructed from memory or the 2026-07-16 capture in
-`.bmad/docs/atproto_reference.md` (which predates this sprint and turns out to still be directionally
+`planning/docs/atproto_reference.md` (which predates this sprint and turns out to still be directionally
 correct, but this doc is the authoritative version going forward).
 
 ## Sources
