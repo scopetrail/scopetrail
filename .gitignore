@@ -13,8 +13,7 @@ dist/
 # scratch build artifacts. None of it is part of the shipped library or public documentation, so
 # it's excluded from the public tree rather than swept file-by-file. Decision recorded here per
 # sprint_05 Task 1 subtask 2 ("gitignore or exclusion list — document the choice").
-.bmad/
-_bmad*/
+planning/
 
 # OS cruft
 .DS_Store
