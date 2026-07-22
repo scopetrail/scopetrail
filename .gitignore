@@ -21,3 +21,6 @@ _bmad*/
 
 # npm pack output (Sprint 05 Task 2 smoke-test tarballs) — not part of the source tree
 *.tgz
+
+# Claude/BMAD workshop tooling — internal workflow machinery, not product (untracked pre-public-flip, Sprint 05)
+.claude/
