@@ -105,8 +105,38 @@ function authorityDomainForNsid(nsid) {
   return [...authoritySegments].reverse().join('.');
 }
 
+/**
+ * Recursively sort object keys so two structurally identical values stringify identically,
+ * regardless of key insertion order. Arrays are left in place — their order IS significant
+ * (e.g. `defs.main.record.required`), so they must never be sorted.
+ */
+function canonicalize(value) {
+  if (Array.isArray(value)) {
+    return value.map(canonicalize);
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((k) => [k, canonicalize(value[k])])
+    );
+  }
+  return value;
+}
+
+/**
+ * Structural equality, insensitive to object key ORDER but sensitive to array order.
+ *
+ * A naive `JSON.stringify(a) === JSON.stringify(b)` is wrong here: a real PDS stores records as
+ * DAG-CBOR, whose canonical form mandates map keys sorted by length first, then bytewise. So a
+ * record read back from a live PDS has different key order than the object we sent, even though
+ * it is byte-for-byte the same record. (Observed 2026-07-25: sent `$type, lexicon, id, defs`,
+ * read back `id(2), defs(4), $type(5), lexicon(7)`.) The mock PDS hands back the same JS object
+ * and so preserves insertion order, which is why --mock never caught this and --live "failed" on
+ * a correct publish.
+ */
 function deepEqual(a, b) {
-  return JSON.stringify(a) === JSON.stringify(b);
+  return JSON.stringify(canonicalize(a)) === JSON.stringify(canonicalize(b));
 }
 
 // ── --mock / --dry-run: publish + read back against the in-memory mock PDS, no network ────────
@@ -262,6 +292,10 @@ async function runLive() {
   console.log(`Round-trip match: ${roundTripOk}`);
   if (!roundTripOk) {
     console.error('FAILED: fetched record does not match what was published.');
+    console.error('  sent:', JSON.stringify(record));
+    console.error('  got: ', JSON.stringify(got.value));
+    console.error('\n  (comparison is key-order insensitive — a mismatch here is a real');
+    console.error('   structural difference, not DAG-CBOR key reordering.)');
     process.exit(1);
   }
 
