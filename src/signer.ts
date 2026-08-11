@@ -30,7 +30,7 @@ const { subtle } = webcrypto;
 
 const OBO_CONTEXTS: string[] = [
   'https://www.w3.org/ns/credentials/v2',
-  'https://schemas.delegation-receipts.dev/v1/obo-receipt.jsonld',
+  'https://scopetrail.github.io/contexts/obo-receipt/v1.jsonld',
 ];
 
 // ── §2.4 — Base58btc encode / decode ─────────────────────────────────────────
