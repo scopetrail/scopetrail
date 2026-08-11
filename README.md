@@ -60,13 +60,26 @@ const result = await verifyFromUri(uri, client, {
 // → { valid: true, errors: [], receipt, render }
 ```
 
-Or from the command line, against a live receipt (the CLI's `--jwks` takes a local file, so fetch
-the hosted JWKS once):
+Or from the command line with nothing installed and nothing configured — this verifies the live demo
+receipt against the hosted public key, and works on a machine that has never seen this project:
 
 ```bash
-curl -s https://scopetrail.github.io/.well-known/jwks.json -o jwks.json
-node dist/cli/view-receipt.js "at://did:plc:…/dev.scopetrail.auditReceipt/<rkey>" --jwks jwks.json
+curl -sO https://scopetrail.github.io/.well-known/jwks.json
+npx -y --package=@scopetrail/core view-receipt \
+  at://did:plc:bty3gmskhla7rwblq5zl5jm5/dev.scopetrail.auditReceipt/00MSNYOYEE8DED5E8457E895C30683 \
+  --jwks jwks.json
 ```
+
+> **Run that from outside a clone of this repo.** This package *is* `@scopetrail/core`, so inside the
+> source tree `npx` resolves `--package=@scopetrail/core` to the local project instead of fetching it,
+> and npm does not link a root package's own bin — you get `view-receipt: command not found`. From
+> within a clone, build first and invoke the CLI directly:
+>
+> ```bash
+> npm ci && npm run build
+> curl -s https://scopetrail.github.io/.well-known/jwks.json -o jwks.json
+> node dist/cli/view-receipt.js "at://did:plc:…/dev.scopetrail.auditReceipt/<rkey>" --jwks jwks.json
+> ```
 
 The rest of this README walks each step in detail.
 
