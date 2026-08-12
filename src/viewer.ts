@@ -102,14 +102,14 @@ function readStdin(): Promise<string> {
  *
  * ASCII format:
  * ```
- * ROOT  did:web:…/jim  [human]
+ * ROOT  did:web:…:users:jim  [human]
  *   │   authorizedAt: 2026-06-18T14:20:00Z
  *   │   token: sha256:a3f1c9… (jwt / expires 14:20:00Z)
  *   ▼   scopes: read:documents, invoke:summarize
- * HOP 1  did:web:…/orchestrator  [service]
+ * HOP 1  did:web:…:services:orchestrator  [service]
  *   │   …
  *   ▼   …
- * ACTOR  did:web:…/summarizer-v2  [agent]
+ * ACTOR  did:web:…:agents:summarizer-v2  [agent]
  * ```
  */
 export function renderChain(

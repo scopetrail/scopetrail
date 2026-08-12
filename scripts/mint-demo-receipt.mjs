@@ -128,19 +128,19 @@ function makeRawInput() {
   const jwtHop3 = makeJwt({ iss: 'https://auth.scopetrail.dev', exp: Math.floor(tokenExp.getTime() / 1000), jti: 'demo-hop-3' });
   const jwtUpstream = makeJwt({ iss: 'https://auth.scopetrail.dev', exp: Math.floor(tokenExp.getTime() / 1000), jti: 'demo-upstream' });
 
-  const jim = { id: 'did:web:scopetrail.dev/users/jim', type: 'human', displayName: 'Jim' };
+  const jim = { id: 'did:web:scopetrail.dev:users:jim', type: 'human', displayName: 'Jim' };
   const orchestrator = {
-    id: 'did:web:scopetrail.dev/services/expense-orchestrator',
+    id: 'did:web:scopetrail.dev:services:expense-orchestrator',
     type: 'service',
     displayName: 'Expense Orchestrator',
   };
   const agent = {
-    id: 'did:web:scopetrail.dev/agents/expense-agent',
+    id: 'did:web:scopetrail.dev:agents:expense-agent',
     type: 'agent',
     displayName: 'Expense Agent',
   };
   const tool = {
-    id: 'did:web:scopetrail.dev/tools/payment-api',
+    id: 'did:web:scopetrail.dev:tools:payment-api',
     type: 'service',
     displayName: 'Payment Tool',
   };

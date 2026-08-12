@@ -66,7 +66,7 @@ receipt against the hosted public key, and works on a machine that has never see
 ```bash
 curl -sO https://scopetrail.github.io/.well-known/jwks.json
 npx -y --package=@scopetrail/core view-receipt \
-  at://did:plc:bty3gmskhla7rwblq5zl5jm5/dev.scopetrail.auditReceipt/00MSNYOYEE8DED5E8457E895C30683 \
+  at://did:plc:bty3gmskhla7rwblq5zl5jm5/dev.scopetrail.auditReceipt/00MSQDN0UT747ADDB2C4BB25420974 \
   --jwks jwks.json
 ```
 
@@ -105,22 +105,22 @@ const now = Date.now();
 const iso = (ms: number) => new Date(ms).toISOString();
 
 const context = extractContext({
-  rootPrincipal:   { id: 'did:web:org/users/jim', type: 'human', displayName: 'Jim' },
-  actingPrincipal: { id: 'did:web:agent/summarizer', type: 'agent', displayName: 'Summarizer' },
+  rootPrincipal:   { id: 'did:web:example.com:users:jim', type: 'human', displayName: 'Jim' },
+  actingPrincipal: { id: 'did:web:example.com:agents:summarizer', type: 'agent', displayName: 'Summarizer' },
 
   // Ordered delegation hops: human → service → agent
   hops: [
     {
-      delegator: { id: 'did:web:org/users/jim', type: 'human' },
-      delegate:  { id: 'did:web:org/orchestrator', type: 'service' },
+      delegator: { id: 'did:web:example.com:users:jim', type: 'human' },
+      delegate:  { id: 'did:web:example.com:services:orchestrator', type: 'service' },
       scopeAtHop: ['read:docs', 'invoke:summarize'],
       rawToken: '<jwt-or-opaque-token>',
       tokenType: 'jwt',
       authorizedAt: iso(now - 2000),
     },
     {
-      delegator: { id: 'did:web:org/orchestrator', type: 'service' },
-      delegate:  { id: 'did:web:agent/summarizer', type: 'agent' },
+      delegator: { id: 'did:web:example.com:services:orchestrator', type: 'service' },
+      delegate:  { id: 'did:web:example.com:agents:summarizer', type: 'agent' },
       scopeAtHop: ['read:docs', 'invoke:summarize'],
       rawToken: '<leaf-token>',
       tokenType: 'jwt',
@@ -246,15 +246,15 @@ Example output:
 ```
 ═══ OBO AUDIT RECEIPT ═══
 
-ROOT  did:web:org/users/jim  [human]
+ROOT  did:web:example.com:users:jim  [human]
   │   authorizedAt: 2026-06-18T14:20:00Z
   │   token: sha256:845e3044… (jwt / expires 16:00:00Z)
   ▼   scopes: read:docs, invoke:summarize
-HOP 1  did:web:org/orchestrator  [service]
+HOP 1  did:web:example.com:services:orchestrator  [service]
   │   authorizedAt: 2026-06-18T14:22:00Z
   │   token: sha256:7d1b4186… (opaque)
   ▼   scopes: read:docs, invoke:summarize
-ACTOR  did:web:agent/summarizer  [agent]
+ACTOR  did:web:example.com:agents:summarizer  [agent]
 
 ┌─ ACTION ─────────────────────────────────────────┐
 │  verb:         invoke                            │
