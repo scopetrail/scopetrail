@@ -29,9 +29,62 @@ import { ContextValidationError } from './types.js';
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const TOKEN_DIGEST_RE = /^sha256:[0-9a-f]{64}$/;
-/** Matches `did:…` or any URI containing `://` */
-const DID_OR_URI_RE = /^did:|:\/\//;
+
+/** `idchar` per W3C did-core §3.1: ALPHA / DIGIT / "." / "-" / "_" / pct-encoded. */
+const IDCHAR = '(?:[A-Za-z0-9._-]|%[0-9A-Fa-f]{2})';
+/**
+ * A conformant W3C DID, per the did-core ABNF:
+ *
+ *   did                = "did:" method-name ":" method-specific-id
+ *   method-name        = 1*( %x61-7A / DIGIT )
+ *   method-specific-id = *( *idchar ":" ) 1*idchar
+ *
+ * Note that `/` is not a legal DID character anywhere. `did:web` path segments are
+ * colon-delimited — `did:web:example.com:users:jim` — and only become slashes when the
+ * DID is resolved to an HTTPS URL. A slash-form `did:web:example.com/users/jim` is not
+ * an unconventional DID, it is a malformed one.
+ */
+const DID_RE = new RegExp(`^did:[a-z0-9]+:(?:${IDCHAR}*:)*${IDCHAR}+$`);
+/** An absolute URI with a scheme and authority, the non-DID identifier form we accept. */
+const ABSOLUTE_URI_RE = /^[A-Za-z][A-Za-z0-9+.-]*:\/\/\S+$/;
 const MAX_CHAIN_DEPTH = 5;
+
+/**
+ * Validate one principal identifier, pushing a typed error rather than throwing so the
+ * caller can collect every problem in a single pass.
+ *
+ * Accepts a conformant DID or an absolute URI. Applied to *every* principal in the
+ * context — root, acting, and both ends of each hop — because an identifier that reaches
+ * a signed receipt unvalidated is an identifier nothing will ever check again.
+ */
+function validatePrincipalId(
+  id: string | undefined,
+  field: string,
+  errors: Array<{ field: string; rule: string }>
+): void {
+  if (!id) {
+    errors.push({ field, rule: 'Must be a non-empty identifier' });
+    return;
+  }
+  if (id.startsWith('did:')) {
+    if (!DID_RE.test(id)) {
+      errors.push({
+        field,
+        rule:
+          `"${id}" is not a conformant DID. "/" is not a legal DID character — path segments ` +
+          `are colon-delimited (did:web:example.com:users:jim, not did:web:example.com/users/jim). ` +
+          `See W3C did-core §3.1.`,
+      });
+    }
+    return;
+  }
+  if (!ABSOLUTE_URI_RE.test(id)) {
+    errors.push({
+      field,
+      rule: `"${id}" must be either a conformant DID or an absolute URI with a scheme`,
+    });
+  }
+}
 /** Maximum allowed clock skew for issuedAt (ms) */
 const CLOCK_SKEW_MS = 5_000;
 
@@ -237,13 +290,15 @@ function buildTokenRef(
 export function extractContext(input: RawContextInput): OBOTokenContext {
   const errors: Array<{ field: string; rule: string }> = [];
 
-  // Validate rootPrincipal.id
-  if (!input.rootPrincipal.id || !DID_OR_URI_RE.test(input.rootPrincipal.id)) {
-    errors.push({
-      field: 'rootPrincipal.id',
-      rule: 'Must be non-empty and start with "did:" or contain "://"',
-    });
-  }
+  // Validate every principal identifier — root, acting, and both ends of every hop.
+  // Previously only rootPrincipal.id was checked, and only for shape ("starts with did:"),
+  // which let malformed DIDs into signed receipts through the three unchecked fields.
+  validatePrincipalId(input.rootPrincipal?.id, 'rootPrincipal.id', errors);
+  validatePrincipalId(input.actingPrincipal?.id, 'actingPrincipal.id', errors);
+  input.hops.forEach((hop: RawHopInput, i: number) => {
+    validatePrincipalId(hop.delegator?.id, `hops[${i}].delegator.id`, errors);
+    validatePrincipalId(hop.delegate?.id, `hops[${i}].delegate.id`, errors);
+  });
 
   // Validate action.resourceUri
   try {

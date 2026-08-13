@@ -142,7 +142,7 @@ const context = extractContext({
 });
 ```
 
-Validation enforced for you: chain linkage (each hop's delegate = next hop's delegator, leaf = actor), scope subset at each hop, max chain depth of 5, clock-skew tolerance (5 s), and URI/DID shapes. Catch failures via the typed error:
+Validation enforced for you: chain linkage (each hop's delegate = next hop's delegator, leaf = actor), scope subset at each hop, max chain depth of 5, clock-skew tolerance (5 s), and **identifier conformance on every principal** (see below). Catch failures via the typed error:
 
 ```ts
 import { ContextValidationError } from '@scopetrail/core';
@@ -155,6 +155,37 @@ try {
   }
 }
 ```
+
+### Principal identifiers — conformance (since 0.2.0)
+
+Every principal identifier is validated: `rootPrincipal.id`, `actingPrincipal.id`, and both ends of
+every hop. Each must be either a **conformant W3C DID** or an absolute URI with a scheme.
+
+The DID check follows the [did-core](https://www.w3.org/TR/did-core/) ABNF, which means path segments
+are **colon-delimited** and `/` is not a legal DID character anywhere:
+
+```
+did:web:example.com:users:jim        ✅ conformant
+did:web:example.com                  ✅ conformant (bare domain)
+did:plc:bty3gmskhla7rwblq5zl5jm5     ✅ conformant
+https://example.com/users/jim        ✅ absolute URI
+
+did:web:example.com/users/jim        ❌ "/" is not a DID character
+did:web:                             ❌ empty method-specific-id
+did:WEB:example.com:jim              ❌ method names are lowercase
+```
+
+The slash form is a common mistake because a `did:web` *resolves* to a URL where the colons become
+slashes — `did:web:example.com:users:jim` → `https://example.com/users/jim/did.json`. The slashes
+belong to the resolved URL, not to the identifier.
+
+Failures arrive as `ContextValidationError` with one entry per offending field, so a context with
+several bad identifiers reports all of them in a single pass rather than one per run.
+
+> **Behavior change in 0.2.0.** Before 0.2.0 only `rootPrincipal.id` was checked, and only for shape
+> (*starts with `did:`, or contains `://`*). Identifiers that previously produced a signed receipt may
+> now throw. That is deliberate — an identifier that reaches a signed receipt unvalidated is one
+> nothing will ever check again — but it is a breaking change for callers passing non-conformant DIDs.
 
 ---
 

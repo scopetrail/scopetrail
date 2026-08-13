@@ -34,18 +34,18 @@ function makeRawInput(): RawContextInput {
   const jwt2 = makeJwt({ iss: 'https://auth.example', exp: Math.floor(exp.getTime() / 1000), jti: 'j2' });
 
   return {
-    rootPrincipal: { id: 'did:web:org.example/users/jim', type: 'human' },
+    rootPrincipal: { id: 'did:web:org.example:users:jim', type: 'human' },
     hops: [
       {
-        delegator: { id: 'did:web:org.example/users/jim', type: 'human' },
-        delegate: { id: 'did:web:org.example/agents/bot', type: 'agent' },
+        delegator: { id: 'did:web:org.example:users:jim', type: 'human' },
+        delegate: { id: 'did:web:org.example:agents:bot', type: 'agent' },
         scopeAtHop: ['read:docs'],
         rawToken: jwt1,
         tokenType: 'jwt',
         authorizedAt: now.toISOString(),
       },
     ],
-    actingPrincipal: { id: 'did:web:org.example/agents/bot', type: 'agent' },
+    actingPrincipal: { id: 'did:web:org.example:agents:bot', type: 'agent' },
     rawUpstreamToken: jwt2,
     upstreamTokenType: 'jwt',
     grantedScopes: ['read:docs'],

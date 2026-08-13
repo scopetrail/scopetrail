@@ -19,9 +19,9 @@ import type { Principal, DelegationHop, RawContextInput } from '../types.js';
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 
-const human: Principal = { id: 'did:web:org.example/users/jim', type: 'human' };
-const svc: Principal = { id: 'did:web:org.example/services/orch', type: 'service' };
-const agent: Principal = { id: 'did:web:org.example/agents/bot', type: 'agent' };
+const human: Principal = { id: 'did:web:org.example:users:jim', type: 'human' };
+const svc: Principal = { id: 'did:web:org.example:services:orch', type: 'service' };
+const agent: Principal = { id: 'did:web:org.example:agents:bot', type: 'agent' };
 
 /** Minimal valid JWT with iss, exp, jti claims */
 function makeJwt(claims: Record<string, unknown>): string {
@@ -251,5 +251,77 @@ describe('extractContext', () => {
       () => extractContext(badInput),
       (e: unknown) => e instanceof ContextValidationError
     );
+  });
+});
+
+describe('principal identifier conformance (did-core §3.1)', () => {
+  /** Extract the field names from a thrown ContextValidationError, whatever its shape. */
+  function fieldsOf(fn: () => unknown): string {
+    try {
+      fn();
+    } catch (e) {
+      return JSON.stringify(e instanceof ContextValidationError ? (e as unknown as { errors?: unknown }).errors ?? String(e) : String(e));
+    }
+    return '';
+  }
+
+  const slash = { id: 'did:web:org.example/users/jim', type: 'human' as const };
+
+  it('rejects a slash-form did:web in rootPrincipal.id', () => {
+    assert.throws(
+      () => extractContext(makeRawInput({ rootPrincipal: slash })),
+      (e: unknown) => e instanceof ContextValidationError
+    );
+  });
+
+  it('rejects a slash-form did:web in actingPrincipal.id — previously unvalidated', () => {
+    assert.throws(
+      () => extractContext(makeRawInput({ actingPrincipal: { id: 'did:web:org.example/agents/bot', type: 'agent' } })),
+      (e: unknown) => e instanceof ContextValidationError
+    );
+    assert.match(fieldsOf(() => extractContext(makeRawInput({
+      actingPrincipal: { id: 'did:web:org.example/agents/bot', type: 'agent' },
+    }))), /actingPrincipal\.id/);
+  });
+
+  it('rejects a slash-form did:web inside a hop — previously unvalidated', () => {
+    const bad = { id: 'did:web:org.example/services/orch', type: 'service' as const };
+    const input = makeRawInput();
+    input.hops[0].delegate = bad;
+    input.hops[1].delegator = bad;
+    assert.match(fieldsOf(() => extractContext(input)), /hops\[0\]\.delegate\.id/);
+  });
+
+  it('accepts a conformant multi-segment did:web', () => {
+    const ok = { id: 'did:web:example.com:users:jim', type: 'human' as const };
+    const input = makeRawInput({ rootPrincipal: ok });
+    input.hops[0].delegator = ok;
+    assert.doesNotThrow(() => extractContext(input));
+  });
+
+  it('accepts did:plc and a bare-domain did:web', () => {
+    for (const id of ['did:plc:bty3gmskhla7rwblq5zl5jm5', 'did:web:example.com']) {
+      const p = { id, type: 'human' as const };
+      const input = makeRawInput({ rootPrincipal: p });
+      input.hops[0].delegator = p;
+      assert.doesNotThrow(() => extractContext(input), `should accept ${id}`);
+    }
+  });
+
+  it('accepts an absolute https URI as a principal id', () => {
+    const p = { id: 'https://example.com/users/jim', type: 'human' as const };
+    const input = makeRawInput({ rootPrincipal: p });
+    input.hops[0].delegator = p;
+    assert.doesNotThrow(() => extractContext(input));
+  });
+
+  it('rejects malformed DIDs that the old shape-check let through', () => {
+    for (const id of ['did:', 'did:web', 'did:web:', 'did:WEB:example.com:jim', 'not-a-did-or-uri']) {
+      assert.throws(
+        () => extractContext(makeRawInput({ rootPrincipal: { id, type: 'human' } })),
+        (e: unknown) => e instanceof ContextValidationError,
+        `should reject ${JSON.stringify(id)}`
+      );
+    }
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "@scopetrail/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "OBO Audit Receipt — portable, cryptographically signed delegation receipts. Zero runtime dependencies. Hosted/self-managed issuer service: ScopeTrail ops (separate private package).",
   "type": "module",
   "main": "dist/index.js",
